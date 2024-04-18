@@ -30,37 +30,52 @@ class WebConfig : WebMvcConfigurer {
 
     @Bean
     fun functionalRoutes(satelliteService: SatelliteService): RouterFunction<*> = router {
-        fun wrapNotFoundError(call: () -> Any): ServerResponse {
-            return try {
-                val result = call()
-                ok().body(result)
-            }
-            catch (e: IllegalArgumentException) {
-                notFound().build()
-            }
-        }
-
         "/fn".nest {
             "/satellites".nest {
                 GET("") {
-                    ok().body(satelliteService.read())
+                    try {
+                        val satellites = satelliteService.read()
+                        ok().body(satellites)
+                    } catch (e: IllegalArgumentException) {
+                        notFound().build()
+                    }
                 }
                 GET("/{id}") { req ->
                     val id = req.pathVariable("id").toLong()
-                    wrapNotFoundError { satelliteService.readById(id) }
+                    try {
+                        val satellite = satelliteService.readById(id)
+                        ok().body(satellite)
+                    } catch (e: IllegalArgumentException) {
+                        notFound().build()
+                    }
                 }
-                POST("",) { req ->
+                POST("") { req ->
                     val satellite = req.body<SatelliteRequest>()
-                    ok().body(satelliteService.create(satellite))
+                    try {
+                        val createdSatellite = satelliteService.create(satellite)
+                        ok().body(createdSatellite)
+                    } catch (e: IllegalArgumentException) {
+                        notFound().build()
+                    }
                 }
                 PUT("/{id}") { req ->
                     val id = req.pathVariable("id").toLong()
                     val satellite = req.body<SatelliteRequest>()
-                    wrapNotFoundError { satelliteService.updateById(id, satellite) }
+                    try {
+                        val updatedSatellite = satelliteService.updateById(id, satellite)
+                        ok().body(updatedSatellite)
+                    } catch (e: IllegalArgumentException) {
+                        notFound().build()
+                    }
                 }
                 DELETE("/{id}") { req ->
                     val id = req.pathVariable("id").toLong()
-                    wrapNotFoundError { satelliteService.deleteById(id)}
+                    try {
+                        val deletedSatellite = satelliteService.deleteById(id)
+                        ok().body(deletedSatellite)
+                    } catch (e: IllegalArgumentException) {
+                        notFound().build()
+                    }
                 }
             }
         }

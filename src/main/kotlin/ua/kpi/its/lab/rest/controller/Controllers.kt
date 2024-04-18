@@ -1,3 +1,4 @@
+package ua.kpi.its.lab.rest.controller
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -10,9 +11,6 @@ import ua.kpi.its.lab.rest.svc.SatelliteService
 class SatelliteController @Autowired constructor(
     private val satelliteService: SatelliteService
 ) {
-    init {
-        println("Hello from controller")
-    }
     /**
      * Gets the list of all satellites
      *
@@ -29,7 +27,12 @@ class SatelliteController @Autowired constructor(
      */
     @GetMapping("{id}")
     fun readSatellite(@PathVariable("id") id: Long): ResponseEntity<SatelliteResponse> {
-        return wrapNotFound { satelliteService.readById(id) }
+        return try {
+            val satellite = satelliteService.readById(id)
+            ResponseEntity.ok(satellite)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.notFound().build()
+        }
     }
 
     /**
@@ -54,7 +57,12 @@ class SatelliteController @Autowired constructor(
         @PathVariable("id") id: Long,
         @RequestBody satellite: SatelliteRequest
     ): ResponseEntity<SatelliteResponse> {
-        return wrapNotFound { satelliteService.updateById(id, satellite)}
+        return try {
+            val updatedSatellite = satelliteService.updateById(id, satellite)
+            ResponseEntity.ok(updatedSatellite)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.notFound().build()
+        }
     }
 
     /**
@@ -67,19 +75,10 @@ class SatelliteController @Autowired constructor(
     fun deleteSatellite(
         @PathVariable("id") id: Long
     ): ResponseEntity<SatelliteResponse> {
-        return wrapNotFound { satelliteService.deleteById(id) }
-    }
-
-    fun <T>wrapNotFound(call: () -> T): ResponseEntity<T> {
         return try {
-            // call function for result
-            val result = call()
-            // return "ok" response with result body
-            ResponseEntity.ok(result)
-        }
-        catch (e: IllegalArgumentException) {
-            // catch not-found exception
-            // return "404 not-found" response
+            val deletedSatellite = satelliteService.deleteById(id)
+            ResponseEntity.ok(deletedSatellite)
+        } catch (e: IllegalArgumentException) {
             ResponseEntity.notFound().build()
         }
     }
